@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.git/
+.gitignore
+.env
+.env.*
+node_modules/
+dist/
+build/
+data/raw/
+data/processed/

@@ -2,24 +2,16 @@ A web-based dashboard for analyzing Formula One races, seasons, and performance 
 
 Main Features
 
-View race results by finish position, or by performance based on empirical data for any year going back to 1950 up to 2025
-
-Full season breakdown showing changes in car performance and upgrades brought by constructors (WIP)
-
-Detailed driver profiles with all related stats and using data to analyze their drives, performance against teammates, and showing their strengths and weaknesses (WIP)
-
-Fully detailed constructor view of their average performance score, constructor to constructor comparison, reliability, and strategy efficiency (WIP)
-
-Shows the exact methodology used to break down performance scores using data from the races themselves (WIP)
-
-Planned Features
-
-Mostly involves live data gathering and running it through some metrics to see who is performing best in the race (performance ranking, live lap deltas, pace trends, tyre stints)
-
-Tyre data race by race and the effectiveness of stints in all races from 1950 to 2025
-
-An executable instead of running through localhost
-## Installation
+- View race results by finish position, or by performance based on empirical data for any year going back to 1950 up to 2025
+- Full season breakdown showing changes in car peformance and upgrades brought by constructors (WIP)
+- Detailed driver profiles with all related stats and using data to anaylze theirdrives, performance against teammates, and showing their strengths and weaknesses (WIP)
+- Fully detailed constuctor view of their average performance score, constructor to conscuctor comparison reliabilty and strategy efficiency. (WIP)
+- Shows the exactly methodology used to breakdown performance scores using data from the races themselves (WIP)
+# Planned Features 
+- Mostly involves live data gathering and running it through some metrics to see how is performing best in the race (performance ranking, Live lap deltas Pace trends ,Tyre stints)
+- Tyre data race by race and the effective of stints in all races from 1950 to 2025
+- An execuatable instead of runnning through localhost
+## Installation (Python)
 
 1. Install dependencies:
 ```bash
@@ -37,7 +29,26 @@ Or using uvicorn directly:
 ```bash
 uvicorn api:app --reload --host 127.0.0.1 --port 8000
 ```
-#If port 8000 is in use switch it in api.py
+## If port 8000 is in use switch it in api.py
+
+## Run with Docker
+
+This is the easiest way to run the dashboard without installing Python locally.
+
+### Prerequisites
+- Install Docker Desktop
+
+### Start the app
+From the repo root (same folder as `docker-compose.yml`):
+
+```bash
+docker compose up --build
+```
+### Shutdown the app
+```bash
+docker docker compose down
+```
+## If port 8000 is in use switch it in api.py
 
 2. Open your browser and navigate to:
 ```
