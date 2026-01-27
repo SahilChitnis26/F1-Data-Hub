@@ -1,18 +1,24 @@
-Formula One Data Analysis- WIP
+A web-based dashboard for analyzing Formula One races, seasons, and performance metrics, all run locally.
 
-A web-based dashboard for analyzing Formula One races, seasons and performance metrics all ran locally. 
+Main Features
 
-# Main Features
+View race results by finish position, or by performance based on empirical data for any year going back to 1950 up to 2025
 
-- View race results by finish position, or by performance based on empirical data for any year going back to 1950 up to 2025
-- Full season breakdown showing changes in car peformance and upgrades brought by constructors (WIP)
-- Detailed driver profiles with all related stats and using data to anaylze theirdrives, performance against teammates, and showing their strengths and weaknesses (WIP)
-- Fully detailed constuctor view of their average performance score, constructor to conscuctor comparison reliabilty and strategy efficiency. (WIP)
-- Shows the exactly methodology used to breakdown performance scores using data from the races themselves (WIP)
-# Planned Features 
-- Mostly involves live data gathering and running it through some metrics to see how is performing best in the race (performance ranking, Live lap deltas Pace trends ,Tyre stints)
-- Tyre data race by race and the effective of stints in all races from 1950 to 2025
-- An execuatable instead of runnning through localhost
+Full season breakdown showing changes in car performance and upgrades brought by constructors (WIP)
+
+Detailed driver profiles with all related stats and using data to analyze their drives, performance against teammates, and showing their strengths and weaknesses (WIP)
+
+Fully detailed constructor view of their average performance score, constructor to constructor comparison, reliability, and strategy efficiency (WIP)
+
+Shows the exact methodology used to break down performance scores using data from the races themselves (WIP)
+
+Planned Features
+
+Mostly involves live data gathering and running it through some metrics to see who is performing best in the race (performance ranking, live lap deltas, pace trends, tyre stints)
+
+Tyre data race by race and the effectiveness of stints in all races from 1950 to 2025
+
+An executable instead of running through localhost
 ## Installation
 
 1. Install dependencies:
