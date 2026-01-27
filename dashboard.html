@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula One Data Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .view-toggle button {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .view-toggle button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .race-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .race-info h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .race-info p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr.fastest-lap {
+            background: #fff9c4 !important;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.finished {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.lapped {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.retired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .performance-score {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .position {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Formula One Data Analyzer</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="season">Season</label>
+                <input type="number" id="season" value="2025" min="1950" max="2025">
+            </div>
+            <div class="control-group">
+                <label for="round">Race</label>
+                <input type="number" id="round" value="1" min="1" max="24">
+            </div>
+            <button onclick="loadRace()">Analyze</button>
+        </div>
+
+        <div class="view-toggle" id="viewToggle" style="display: none;">
+            <button onclick="switchView('finish')" id="btnFinish" class="active">Finish Position</button>
+            <button onclick="switchView('performance')" id="btnPerformance">Performance Score</button>
+        </div>
+
+        <div id="content">
+            <div class="loading">Enter season and race, then click "Analyze" to view results.</div>
+        </div>
+    </div>
+
+    <script>
+        let currentView = 'finish';
+        let currentData = null;
+
+        async function loadRace() {
+            const season = document.getElementById('season').value;
+            const round = document.getElementById('round').value;
+            const contentDiv = document.getElementById('content');
+            const viewToggle = document.getElementById('viewToggle');
+
+            if (!season || !round) {
+                contentDiv.innerHTML = '<div class="error">Please enter both season and race.</div>';
+                return;
+            }
+
+            contentDiv.innerHTML = '<div class="loading">Loading race data...</div>';
+            viewToggle.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/race/${season}/${round}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to fetch race data');
+                }
+
+                const data = await response.json();
+                currentData = data;
+                currentView = 'finish';
+                displayResults(data, 'finish');
+                viewToggle.style.display = 'flex';
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function switchView(view) {
+            if (view === currentView) return;
+
+            currentView = view;
+            document.getElementById('btnFinish').classList.toggle('active', view === 'finish');
+            document.getElementById('btnPerformance').classList.toggle('active', view === 'performance');
+
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = '<div class="loading">Loading data...</div>';
+
+            try {
+                if (view === 'performance') {
+                    const season = document.getElementById('season').value;
+                    const round = document.getElementById('round').value;
+                    const response = await fetch(`/api/race/${season}/${round}/performance`);
+                    const data = await response.json();
+                    displayResults(data, 'performance');
+                } else {
+                    displayResults(currentData, 'finish');
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayResults(data, view) {
+            const contentDiv = document.getElementById('content');
+            const raceInfo = data.race_info;
+            const results = data.results;
+
+            let html = `
+                <div class="race-info">
+                    <h2>${raceInfo.raceName}</h2>
+                    <p>${raceInfo.season} Season - Round ${raceInfo.round}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Driver</th>
+                            <th>Constructor</th>
+                            <th>Grid</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Points</th>
+                            ${view === 'finish' ? '<th>Fastest Lap</th>' : '<th>Performance</th>'}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach((result, index) => {
+                const fastestLapClass = result.has_fastest_lap ? 'fastest-lap' : '';
+                const statusClass = result.status.toLowerCase();
+                
+                html += `
+                    <tr class="${fastestLapClass}">
+                        <td class="position">${result.Finish}</td>
+                        <td>${result.driver}</td>
+                        <td>${result.constructor}</td>
+                        <td>${result.grid}</td>
+                        <td><span class="badge ${statusClass}">${result.status}</span></td>
+                        <td>${result.time}</td>
+                        <td>${result.points}</td>
+                        ${view === 'finish' 
+                            ? `<td>${result.fastest_lap || '-'}</td>` 
+                            : `<td class="performance-score">${result.Performance.toFixed(3)}</td>`}
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        // Allow Enter key to trigger load
+        document.getElementById('season').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRace();
+        });
+        document.getElementById('round').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRace();
+        });
+    </script>
+</body>
+</html>

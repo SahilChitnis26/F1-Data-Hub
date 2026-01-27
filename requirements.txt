@@ -1,0 +1,11 @@
+#Frontend
+fastapi
+uvicorn[standard]
+pydantic
+
+# Data
+pandas
+numpy
+
+# HTTP
+requests
