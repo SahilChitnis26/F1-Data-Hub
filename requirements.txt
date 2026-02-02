@@ -9,3 +9,6 @@ numpy
 
 # HTTP
 requests
+
+# Telemetry / Advanced analysis
+fastf1
