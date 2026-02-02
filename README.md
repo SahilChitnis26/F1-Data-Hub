@@ -114,15 +114,18 @@ GET /api/race/2024/3/performance
 4. Toggle between "Finish Position" and "Performance Score" views
 5. The fastest lap of the race is highlighted in yellow
 
-## Performance Score Formula
+### Performance Scoring (WIP)
 
-The performance score is calculated using:
-- 28% Position gain (grid to finish)
-- 23% Average lap time (negated)
-- 18% Lap time consistency (negated)
-- 13% Pit stop time (negated)
-- 8% Teammate comparison (negated)
-- 10% Fastest lap indicator
+Scores are now split into two layers:
+
+- **Results Score**: outcome-based performance using things like grid → finish, finishing outcome/points, and teammate result comparison.
+- **Execution Score**: race execution using lap-level pace (delta to leader), consistency, stint/degradation behavior, and pit impact metrics.
+
+**Composite Score = 0.4 × Results Score + 0.6 × Execution Score**  
+If not, Composite falls back to Results Score.
+
+(Weights and metrics are still being refined as new features get added.)
+
 
 
 ## Development
