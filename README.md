@@ -138,3 +138,9 @@ The dashboard uses:
 - Some older races may have incomplete data
 - Performance scores are calculated using z-score normalization
 - Perfomance formula will be refined overtime and include new metrics it will be made so you can pick what you believe is most important
+### Data Sources
+Race data is provided by FastF1 and Ergast/Jolpica.  
+This project is not affiliated with Formula 1, FIA, or any data provider.
+
+## License
+This project is licensed under the MIT License.
