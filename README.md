@@ -1,8 +1,9 @@
 A web-based dashboard for analyzing Formula One races, seasons, and performance metrics, all run locally.
 
-Main Features
+## Main Features
 
-- View race results by finish position, or by performance based on empirical data for any year going back to 1950 up to 2025
+- View race results by finish position, going back to 1950 up to 2025
+- Full-race lap-by-lap analysis using FastF1, highlighting pace trends, pit stops, tire stints, and driver execution beyond finishing position
 - Full season breakdown showing changes in car peformance and upgrades brought by constructors (WIP)
 - Detailed driver profiles with all related stats and using data to anaylze theirdrives, performance against teammates, and showing their strengths and weaknesses (WIP)
 - Fully detailed constuctor view of their average performance score, constructor to conscuctor comparison reliabilty and strategy efficiency. (WIP)
