@@ -1,17 +1,42 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 import pandas as pd
 from pathlib import Path
 import math
+import time
 
 from src.ingestion.ergast import fetch_race_results
-from src.ingestion.deep_analysis import fetch_lap_pace
-from src.scoring import calculate_composite_score
+from src.ingestion.deep_analysis import fetch_lap_pace, UnsupportedSessionError
+from src.scoring import calculate_results_score, calculate_composite
 from src.analytics.race_analyzer import compute_race_analyzer
 
 app = FastAPI(title="Formula One Data Analyzer", version="1.0.0")
+
+# Cache for Race Analyzer: 12h TTL, max 50 entries. Key: ANALYTICS_VERSION|season|round|session
+ANALYTICS_VERSION = "1"
+_CACHE_TTL_SEC = 12 * 3600
+_CACHE_MAXSIZE = 50
+_analyzer_cache: dict[str, tuple[dict, float]] = {}
+
+
+def _analyzer_cache_get(key: str) -> dict | None:
+    if key not in _analyzer_cache:
+        return None
+    payload, ts = _analyzer_cache[key]
+    if time.monotonic() - ts > _CACHE_TTL_SEC:
+        del _analyzer_cache[key]
+        return None
+    return payload
+
+
+def _analyzer_cache_set(key: str, payload: dict) -> None:
+    now = time.monotonic()
+    if len(_analyzer_cache) >= _CACHE_MAXSIZE:
+        oldest_key = min(_analyzer_cache, key=lambda k: _analyzer_cache[k][1])
+        del _analyzer_cache[oldest_key]
+    _analyzer_cache[key] = (payload, now)
 
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent
@@ -87,17 +112,18 @@ async def get_race_results(season: int, round_no: int):
     Returns JSON with race data including performance scores.
     """
     try:
-        # Fetch race results
+        # Fetch race results (Ergast)
         df = fetch_race_results(season, round_no)
 
-        # Calculate composite performance score (works off raw status/time)
-        df = calculate_composite_score(df, season, round_no)
+        # Results score + composite (composite == results when no FastF1)
+        df = calculate_results_score(df, season, round_no)
+        df["composite_score"] = df["results_score"]
 
         # --- Normalize status/time (DNF red + lapped in time) ---
         df = normalize_status_and_time(df)
 
-        # Rename performance_score to Performance
-        df = df.rename(columns={"performance_score": "Performance"})
+        # Keep Performance column for backward compat (same as composite_score)
+        df["Performance"] = df["composite_score"]
 
         # Shorten race name
         df["raceName"] = df["raceName"].str.replace("Grand Prix", "GP", regex=False)
@@ -129,7 +155,7 @@ async def get_race_results(season: int, round_no: int):
         if fastest_lap_driver_idx is not None:
             df.loc[fastest_lap_driver_idx, "has_fastest_lap"] = True
 
-        # Select columns for display
+        # Select columns for display (include results_score and composite_score)
         display_cols = [
             "season",
             "round",
@@ -142,9 +168,10 @@ async def get_race_results(season: int, round_no: int):
             "time",
             "points",
             "fastest_lap",
+            "results_score",
+            "composite_score",
             "Performance",
             "has_fastest_lap",
-            # Extra DNF metadata for tooltips
             "dnf_reason",
             "dnf_lap",
         ]
@@ -187,12 +214,10 @@ async def get_race_results_performance(season: int, round_no: int):
     try:
         df = fetch_race_results(season, round_no)
 
-        # Calculate composite performance score (works off raw status/time)
-        df = calculate_composite_score(df, season, round_no)
-
-        # --- Normalize status/time (DNF red + lapped in time) ---
+        df = calculate_results_score(df, season, round_no)
+        df["composite_score"] = df["results_score"]
         df = normalize_status_and_time(df)
-        df = df.rename(columns={"performance_score": "Performance"})
+        df["Performance"] = df["composite_score"]
         df["raceName"] = df["raceName"].str.replace("Grand Prix", "GP", regex=False)
 
         display_cols = [
@@ -206,18 +231,18 @@ async def get_race_results_performance(season: int, round_no: int):
             "status",
             "time",
             "points",
+            "results_score",
+            "composite_score",
             "Performance",
-            # Extra DNF metadata for tooltips
             "dnf_reason",
             "dnf_lap",
         ]
 
         df_display = df[display_cols].copy()
-        # Replace NaN/NaT with None so JSON serialization is happy
         df_display = df_display.where(pd.notna(df_display), None)
         df_display["Finish"] = pd.to_numeric(df_display["Finish"], errors="coerce").fillna(0).astype(int)
 
-        df_display = df_display.sort_values("Performance", ascending=False)
+        df_display = df_display.sort_values("composite_score", ascending=False)
 
         if df_display.empty:
             raise HTTPException(status_code=404, detail=f"No race results found for season {season}, round {round_no}")
@@ -283,11 +308,22 @@ async def get_race_lap_pace(season: int, round_no: int):
 
 
 @app.get("/api/race_analyzer/{season}/{round_no}")
-async def get_race_analyzer(season: int, round_no: int):
+async def get_race_analyzer(
+    season: int,
+    round_no: int,
+    refresh: int = Query(0, description="Set to 1 to bypass cache"),
+):
     """
-    Get race analyzer data: race meta, raw laps, and computed metrics (leader by lap,
-    laps with delta, stint summary, insights) for the Race Analyzer dashboard.
+    Get race analyzer data: race meta, raw laps, scores (results_score, execution_score,
+    composite_score), and computed metrics. Cached 12h; refresh=1 bypasses cache.
     """
+    session = "R"
+    cache_key = f"{ANALYTICS_VERSION}|{season}|{round_no}|{session}"
+    if refresh != 1:
+        cached = _analyzer_cache_get(cache_key)
+        if cached is not None:
+            return JSONResponse(content=jsonable_encoder(cached))
+
     try:
         df_race = fetch_race_results(season, round_no)
         race_name = (
@@ -301,8 +337,25 @@ async def get_race_analyzer(season: int, round_no: int):
             "round": round_no,
         }
 
-        df = fetch_lap_pace(season, round_no, session="R")
+        try:
+            df = fetch_lap_pace(season, round_no, session=session)
+        except UnsupportedSessionError as e:
+            return JSONResponse(
+                status_code=200,
+                content=jsonable_encoder({
+                    "supported": False,
+                    "message": str(e),
+                }),
+            )
+
         if df.empty:
+            # Ergast results only: results_score + composite_score (no execution)
+            df_race = calculate_results_score(df_race, season, round_no)
+            df_race["composite_score"] = df_race["results_score"]
+            results_list = df_race[["driver", "results_score"]].drop_duplicates("driver").to_dict(orient="records")
+            composite_list = df_race[["driver", "results_score", "composite_score"]].copy()
+            composite_list["execution_score"] = None
+            composite_list = composite_list.drop_duplicates("driver").to_dict(orient="records")
             payload = {
                 "race_meta": race_meta,
                 "laps": [],
@@ -312,14 +365,28 @@ async def get_race_analyzer(season: int, round_no: int):
                     "stint_summary": [],
                     "stint_ranges": [],
                     "insights": [],
+                    "results_score": _clean_nan(results_list),
+                    "execution_score": [],
+                    "composite_score": _clean_nan(composite_list),
                 },
             }
             safe_payload = _clean_nan(payload)
+            if refresh != 1:
+                _analyzer_cache_set(cache_key, safe_payload)
             return JSONResponse(content=jsonable_encoder(safe_payload))
 
         computed = compute_race_analyzer(df)
 
-        # Raw laps: driver, team, lap, lap_time_s, compound, stint, pit_lap (nullable)
+        # Results score from Ergast race results; composite = blend of results + execution
+        df_race = calculate_results_score(df_race, season, round_no)
+        results_df = df_race[["driver", "results_score"]].drop_duplicates("driver").reset_index(drop=True)
+        execution_list = computed.get("execution_score", [])
+        execution_df = pd.DataFrame(execution_list) if execution_list else None
+        composite_df = calculate_composite(results_df, execution_df)
+        results_list = composite_df[["driver", "results_score"]].to_dict(orient="records")
+        composite_list = composite_df.to_dict(orient="records")
+
+        # Raw laps
         raw_cols = ["driver", "team", "lap_number", "lap_time_s", "compound", "stint"]
         if "is_pit_lap" in df.columns:
             df = df.copy()
@@ -349,11 +416,21 @@ async def get_race_analyzer(season: int, round_no: int):
                 "stint_summary": computed["stint_summary"],
                 "stint_ranges": computed["stint_ranges"],
                 "insights": computed["insights"],
+                "results_score": _clean_nan(results_list),
+                "execution_score": computed.get("execution_score", []),
+                "composite_score": _clean_nan(composite_list),
             },
         }
         safe_payload = _clean_nan(payload)
+        if refresh != 1:
+            _analyzer_cache_set(cache_key, safe_payload)
         return JSONResponse(content=jsonable_encoder(safe_payload))
 
+    except UnsupportedSessionError as e:
+        return JSONResponse(
+            status_code=200,
+            content=jsonable_encoder({"supported": False, "message": str(e)}),
+        )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -1,5 +1,5 @@
 """
-Race analyzer: leader-by-lap, deltas, stint summary, and deterministic insights.
+Race analyzer: leader-by-lap, deltas, stint summary, execution score, and deterministic insights.
 Uses only valid lap times; optional outlier removal per stint.
 """
 from __future__ import annotations
@@ -9,6 +9,8 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+
+from ..scoring.execution_score import calculate_execution_score
 
 # Minimum laps in a stint to compute degradation slope meaningfully
 MIN_LAPS_FOR_DEGRADATION = 3
@@ -305,6 +307,16 @@ def compute_race_analyzer(df: pd.DataFrame) -> dict[str, Any]:
         all_laps["delta_to_leader"] = None
         all_laps["delta_to_stint_avg"] = None
 
+    # Execution score (FastF1-backed deep analytics)
+    exec_df = calculate_execution_score(df)
+    exec_list = exec_df.replace({np.nan: None}).to_dict(orient="records") if not exec_df.empty else []
+    for row in exec_list:
+        for k, v in list(row.items()):
+            if isinstance(v, (np.floating, np.integer)):
+                row[k] = float(v) if isinstance(v, np.floating) else int(v)
+            elif v is pd.NA or (isinstance(v, float) and math.isnan(v)):
+                row[k] = None
+
     # Convert to list of dicts, NaN -> None
     laps_list = all_laps.replace({np.nan: None}).to_dict(orient="records")
     for row in laps_list:
@@ -328,4 +340,5 @@ def compute_race_analyzer(df: pd.DataFrame) -> dict[str, Any]:
         "stint_summary": summary_list,
         "stint_ranges": stint_ranges_list,
         "insights": insights,
+        "execution_score": exec_list,
     }

@@ -2,46 +2,14 @@ import fastf1
 import pandas as pd
 import requests
 
+from .ergast import fetch_lap_times
+
 ERGAST_BASE = "https://api.jolpi.ca/ergast/f1"
 
 
-def _fetch_ergast_lap_times(season: int, round_no: int) -> pd.DataFrame:
-    """Fetch all lap times from Ergast API. Returns DataFrame with lap, driverId, time_s."""
-    url = f"{ERGAST_BASE}/{season}/{round_no}/laps.json?limit=1000"
-    try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception:
-        return pd.DataFrame(columns=["lap", "driverId", "time_s"])
-
-    races = data.get("MRData", {}).get("RaceTable", {}).get("Races", [])
-    if not races:
-        return pd.DataFrame(columns=["lap", "driverId", "time_s"])
-
-    rows = []
-    for lap_info in races[0].get("Laps", []):
-        lap_num = int(lap_info.get("number", 0))
-        for t in lap_info.get("Timings", []):
-            time_str = t.get("time", "")
-            if not time_str:
-                continue
-            # Parse "1:23.456" or "23.456" to seconds
-            try:
-                if ":" in time_str:
-                    parts = time_str.split(":")
-                    time_s = float(parts[0]) * 60 + float(parts[1])
-                else:
-                    time_s = float(time_str)
-                rows.append({
-                    "lap": lap_num,
-                    "driverId": t.get("driverId", ""),
-                    "time_s": time_s,
-                })
-            except (ValueError, IndexError):
-                continue
-
-    return pd.DataFrame(rows)
+class UnsupportedSessionError(Exception):
+    """Raised when FastF1 does not support this session (e.g. pre-2018, no lap data)."""
+    pass
 
 
 def _fetch_ergast_driver_mapping(season: int, round_no: int) -> dict[str, str]:
@@ -89,10 +57,14 @@ def fetch_lap_pace(season: int, round_no: int, session: str = "R") -> pd.DataFra
         pass
 
     # FastF1 accepts either a round number or a Grand Prix name as the second argument.
-    session_obj = fastf1.get_session(season, round_no, session)
-    session_obj.load()  # downloads and parses timing data if not cached
+    try:
+        session_obj = fastf1.get_session(season, round_no, session)
+        session_obj.load()  # downloads and parses timing data if not cached
+        laps = session_obj.laps
+    except Exception as e:
+        # Session not available, no lap data, or API unsupported (e.g. pre-2018)
+        raise UnsupportedSessionError(str(e)) from e
 
-    laps = session_obj.laps
     if laps.empty:
         # Return an empty frame with the expected columns
         return pd.DataFrame(
@@ -133,7 +105,7 @@ def fetch_lap_pace(season: int, round_no: int, session: str = "R") -> pd.DataFra
 
     # Fill missing lap times from Ergast (covers safety car laps, etc.)
     if missing_times.any():
-        ergast_df = _fetch_ergast_lap_times(season, round_no)
+        ergast_df = fetch_lap_times(season, round_no)
         mapping = _fetch_ergast_driver_mapping(season, round_no)
         if not ergast_df.empty and mapping:
             ergast_lookup = {}

@@ -2,7 +2,7 @@ import pandas as pd
 import argparse
 import sys
 from src.ingestion.ergast import fetch_race_results
-from src.scoring import calculate_composite_score
+from src.scoring import calculate_results_score, calculate_composite
 
 def get_race_input(args=None):
     """Get season and round number from arguments or user input."""
@@ -38,11 +38,13 @@ def display_race_results(season, round_no):
     except Exception as e:
         raise Exception(f"Failed to fetch race results: {e}")
     
-    # Calculate composite performance score
-    df = calculate_composite_score(df, season, round_no)
-    
-    # Rename performance_score to Performance
-    df = df.rename(columns={"performance_score": "Performance"})
+    # New flow: results_score -> (optional execution_score) -> calculate_composite
+    df = calculate_results_score(df, season, round_no)
+    results_df = df[["driver", "results_score"]].drop_duplicates("driver").reset_index(drop=True)
+    composite_df = calculate_composite(results_df, execution_df=None)
+    driver_to_composite = dict(zip(results_df["driver"], composite_df["composite_score"]))
+    df["composite_score"] = df["driver"].map(driver_to_composite)
+    df["Performance"] = df["composite_score"]
     
     # Shorten race name: replace "Grand Prix" with "GP"
     df["raceName"] = df["raceName"].str.replace("Grand Prix", "GP", regex=False)

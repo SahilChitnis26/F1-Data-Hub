@@ -1,10 +1,134 @@
-import requests
+import logging
+import time
+from pathlib import Path
+
 import pandas as pd
+import requests
 
 BASE_URL = "https://api.jolpi.ca/ergast/f1"
+LAPS_PAGE_LIMIT = 1000
+CACHE_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "cache" / "ergast"
+MAX_RETRIES = 3
+RETRY_BACKOFF_SEC = 2
+
+log = logging.getLogger(__name__)
 
 
-# Gather Race results from Ergast (Jolpica mirror) F1 API
+def _request_with_retry(url: str, timeout: int = 30) -> requests.Response:
+    """GET with retry and backoff on 429 (rate limit)."""
+    last_resp = None
+    for attempt in range(MAX_RETRIES):
+        resp = requests.get(url, timeout=timeout)
+        last_resp = resp
+        if resp.status_code == 429:
+            if attempt < MAX_RETRIES - 1:
+                wait = RETRY_BACKOFF_SEC * (attempt + 1)
+                log.debug("Ergast 429 rate limit, retrying in %s s (attempt %s)", wait, attempt + 1)
+                time.sleep(wait)
+            else:
+                resp.raise_for_status()
+        else:
+            resp.raise_for_status()
+            return resp
+    if last_resp is not None:
+        last_resp.raise_for_status()
+    return last_resp
+
+
+def _time_string_to_seconds(time_str: str) -> float | None:
+    """Parse '1:23.456' or '23.456' to seconds. Returns None on parse error."""
+    if not (time_str and time_str.strip()):
+        return None
+    try:
+        if ":" in time_str:
+            parts = time_str.strip().split(":")
+            return float(parts[0]) * 60 + float(parts[1])
+        return float(time_str.strip())
+    except (ValueError, IndexError):
+        return None
+
+
+def _parse_lap_times_from_response(data: dict) -> list[dict]:
+    """Extract lap timing rows from Ergast laps.json response. Returns list of {lap, driverId, time_s, time_ms}."""
+    races = data.get("MRData", {}).get("RaceTable", {}).get("Races", [])
+    if not races:
+        return []
+    rows = []
+    for lap_info in races[0].get("Laps", []):
+        lap_num = int(lap_info.get("number", 0))
+        for t in lap_info.get("Timings", []):
+            time_str = (t.get("time") or "").strip()
+            if not time_str:
+                continue
+            time_s = _time_string_to_seconds(time_str)
+            if time_s is None:
+                continue
+            time_ms = time_s * 1000.0
+            rows.append({
+                "lap": lap_num,
+                "driverId": t.get("driverId", ""),
+                "time_s": time_s,
+                "time_ms": time_ms,
+            })
+    return rows
+
+
+def fetch_lap_times(season: int, round_no: int) -> pd.DataFrame:
+    """
+    Fetch all lap times for a race from the Ergast API with pagination.
+    Returns DataFrame with columns: lap, driverId, time_s, time_ms.
+    Uses on-disk cache under data/cache/ergast/ keyed by season/round.
+    """
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_path = CACHE_DIR / f"{season}_{round_no}.csv"
+
+    if cache_path.exists():
+        df = pd.read_csv(cache_path)
+        # Ensure numeric types
+        df["lap"] = df["lap"].astype(int)
+        df["time_s"] = pd.to_numeric(df["time_s"], errors="coerce")
+        df["time_ms"] = pd.to_numeric(df["time_ms"], errors="coerce")
+        log.info(
+            "Ergast lap times: loaded from cache %s — rows=%s, drivers=%s, lap_min=%s, lap_max=%s",
+            cache_path.name, len(df), df["driverId"].nunique(), int(df["lap"].min()), int(df["lap"].max()),
+        )
+        return df
+
+    all_rows = []
+    offset = 0
+    while True:
+        url = f"{BASE_URL}/{season}/{round_no}/laps.json?limit={LAPS_PAGE_LIMIT}&offset={offset}"
+        resp = _request_with_retry(url)
+        data = resp.json()
+        rows = _parse_lap_times_from_response(data)
+        if not rows:
+            break
+        all_rows.extend(rows)
+        offset += LAPS_PAGE_LIMIT
+        if len(rows) < LAPS_PAGE_LIMIT:
+            break
+
+    df = pd.DataFrame(all_rows)
+    if df.empty:
+        df = pd.DataFrame(columns=["lap", "driverId", "time_s", "time_ms"])
+        log.info("Ergast lap times: no data for season=%s round=%s", season, round_no)
+        return df
+
+    total = len(df)
+    drivers = df["driverId"].nunique()
+    lap_min = int(df["lap"].min())
+    lap_max = int(df["lap"].max())
+    log.info(
+        "Ergast lap times: total rows=%s, unique drivers=%s, lap min=%s, lap max=%s",
+        total, drivers, lap_min, lap_max,
+    )
+
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(cache_path, index=False)
+    return df
+
+
+# Gather Race results from Ergast (Jolpica mirror) F1 API FLYNN IS AWERSOME!
 def fetch_race_results(season: int, round_no: int) -> pd.DataFrame:
     """
     Fetch race results for a given season and round from the Ergast F1 API.

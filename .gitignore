@@ -1,3 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+
 # FastF1 cache
 data/FastF1Cache/
+# Ergast lap-times cache
+data/cache/
 *.sqlite
