@@ -133,7 +133,7 @@ If not, Composite falls back to Results Score.
 The dashboard uses:
 - **Backend**: FastAPI (Python)
 - **Frontend**: Vanilla HTML/CSS/JavaScript
-- **Data**: Ergast F1 API
+- **Data**: Ergast/Jolipca & FastF1
 
 ## Notes
 
