@@ -1,149 +1,285 @@
-A web-based dashboard for analyzing Formula One races, seasons, and performance metrics, all run locally.
+# Formula One Performance Dashboard
 
-## Main Features
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3+-38B2AC?logo=tailwindcss&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![FastF1](https://img.shields.io/badge/Data-FastF1-orange)
+![Ergast](https://img.shields.io/badge/Data-Ergast-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-- View race results by finish position, going back to 1950 up to 2025
-- Full-race lap-by-lap analysis using FastF1, highlighting pace trends, pit stops, tire stints, and driver execution beyond finishing position
-- Full season breakdown showing changes in car peformance and upgrades brought by constructors (WIP)
-- Detailed driver profiles with all related stats and using data to anaylze theirdrives, performance against teammates, and showing their strengths and weaknesses (WIP)
-- Fully detailed constuctor view of their average performance score, constructor to conscuctor comparison reliabilty and strategy efficiency. (WIP)
-- Shows the exactly methodology used to breakdown performance scores using data from the races themselves (WIP)
-# Planned Features 
-- Mostly involves live data gathering and running it through some metrics to see how is performing best in the race (performance ranking, Live lap deltas Pace trends ,Tyre stints)
-- Tyre data race by race and the effective of stints in all races from 1950 to 2025
-- An execuatable instead of runnning through localhost
-## Installation (Python)
+A **local, web-based dashboard** for analyzing **Formula One races, seasons, and driver performance** using both **results data** and **lap-level execution metrics**.
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+This project combines historical race results (1950–present) with modern lap-by-lap analysis from **FastF1** to move beyond finishing position and quantify **how well a driver actually drove the race**.
 
-## Running the Dashboard
+---
 
-1. Start the FastAPI server:
-```bash
-python api.py
-```
+## Installation & Quick Start
 
-Or using uvicorn directly:
-```bash
-uvicorn api:app --reload --host 127.0.0.1 --port 8000
-```
-## If port 8000 is in use switch it in api.py
+### Option 1: Docker
 
-## Run with Docker
+The easiest way to run the dashboard without installing Python locally.
 
-This is the easiest way to run the dashboard without installing Python locally.
-
-### Prerequisites
-- Install Docker Desktop
-
-### Start the app
-From the repo root (same folder as `docker-compose.yml`):
+**Prerequisites**
+- Docker Desktop
 
 ```bash
 docker compose up --build
 ```
-### Shutdown the app
-```bash
-docker docker compose down
-```
-## If port 8000 is in use switch it in api.py
 
-2. Open your browser and navigate to:
+Open:
 ```
 http://localhost:8000
 ```
 
+Stop the app:
+```bash
+docker compose down
+```
+
+---
+
+### Option 2: Python (Local)
+
+Install backend dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Running the Dashboard
+
+### One-Step (Build + Run)
+
+```bash
+run_dashboard.bat
+```
+
+This builds the React frontend and starts the FastAPI backend.
+
+Open:
+```
+http://127.0.0.1:8000
+```
+
+---
+
+### Manual Run
+
+```bash
+cd frontend
+npm run build
+cd ..
+python api.py
+```
+
+Or using Uvicorn:
+
+```bash
+uvicorn api:app --reload --host 127.0.0.1 --port 8000
+```
+
+> If port 8000 is in use, change it in `api.py`.
+
+The dashboard and API are served from the same server:
+```
+http://127.0.0.1:8000
+```
+
+---
+
+## Key Capabilities
+
+### Race Analysis
+- View race results by **finish position** for any season from **1950–2025**
+- Sort races by **performance score** instead of classification
+- Highlight fastest laps and key race outcomes
+
+### Lap-Level Performance (FastF1)
+- Full **lap-by-lap pace analysis**
+- Visualize:
+  - Pace trends
+  - Pit stops and pit impact
+  - Tire stints and degradation
+  - Driver execution independent of finishing position
+
+### Season & Driver Views (Work in Progress)
+- Full-season breakdown of:
+  - Car performance trends
+  - Constructor upgrades and performance shifts
+- Detailed driver profiles:
+  - Teammate comparisons
+  - Strengths and weaknesses derived from data
+- Constructor dashboards:
+  - Average performance score
+  - Reliability metrics
+  - Strategy and pit efficiency
+
+---
+
+## Planned Features
+
+- **Live race analysis**
+  - Live pace deltas
+  - Real-time performance ranking
+  - Tyre stint effectiveness during the race
+- **Expanded tyre modeling**
+  - Stint effectiveness across all races (1950–2025)
+- **Standalone executable**
+  - Run without localhost or manual server startup
+
+---
+
+## Performance Scoring Overview (WIP)
+
+Performance is split into two layers:
+
+### Results Score
+Outcome-based performance using:
+- Grid → finish delta
+- Finishing outcome / points
+- Teammate result comparison
+
+### Execution Score
+Lap-level race execution using:
+- Pace delta vs race-median clean laps
+- Consistency and variance
+- Stint and degradation behavior
+- Pit stop impact
+
+**Composite Score**
+
+```
+Composite Score = 0.4 × Results Score + 0.6 × Execution Score
+```
+
+If lap-level data is unavailable, the score falls back to **Results Score only**.
+
+---
+
+## Pace Metric (Core Methodology)
+
+The primary lap-level metric is **pace delta vs race-median clean laps**.
+
+### Definition
+
+```
+pace_delta = actual lap time − expected lap time (seconds)
+```
+
+- Negative → overperformance  
+- Positive → underperformance  
+- Lap 1 is excluded (no baseline)
+
+### Clean Laps
+Only “clean” laps are used to build the baseline:
+- Lap ≥ 2
+- Not pit-in or pit-out
+- Green track status (no SC / VSC / red)
+- Lap time within reasonable percentile bounds
+
+### Expected Pace
+- Rolling median of clean laps (lap −2 to +2 window)
+- Separate baselines for **slick** and **wet/intermediate** tyres
+- Tyre regimes are never mixed
+
+### Design Goals
+- Deterministic
+- Explainable
+- Robust to track evolution and mixed conditions
+- No ML (optional later)
+
+---
+
+## React Dashboard
+
+An optional React-based dashboard lives in `frontend/` and uses:
+
+- **React + TypeScript**
+- **Tailwind CSS**
+- **shadcn/ui**
+- **Recharts**
+
+UI primitives live in:
+```
+src/components/ui
+```
+
+Feature-specific components (charts, views) live in separate folders.
+
+### Development Mode
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- React dev server: `http://localhost:5173`
+- API proxy: `http://127.0.0.1:8000`
+
+---
+
 ## API Endpoints
 
-### GET `/`
-Serves the dashboard HTML page.
+### `GET /`
+Serves the dashboard UI.
 
-### GET `/api/race/{season}/{round_no}`
-Get race results sorted by finish position.
+### `GET /api/race/{season}/{round_no}`
+Returns race results sorted by finish position.
 
-**Example:**
-```
-GET /api/race/2024/3
-```
+### `GET /api/race/{season}/{round_no}/performance`
+Returns race results sorted by performance score.
 
-**Response:**
-```json
-{
-  "race_info": {
-    "season": 2024,
-    "round": 3,
-    "raceName": "Australian GP"
-  },
-  "results": [
-    {
-      "season": 2024,
-      "round": 3,
-      "raceName": "Australian GP",
-      "driver": "Carlos Sainz",
-      "constructor": "Ferrari",
-      "grid": 2,
-      "Finish": 1,
-      "status": "Finished",
-      "time": "0.000",
-      "points": 25.0,
-      "fastest_lap": "1:20.031",
-      "Performance": 0.919,
-      "has_fastest_lap": false
-    },
-    ...
-  ]
-}
-```
+---
 
-### GET `/api/race/{season}/{round_no}/performance`
-Get race results sorted by performance score.
+## Tech Stack
 
-**Example:**
-```
-GET /api/race/2024/3/performance
-```
+**Backend**
+- FastAPI (Python)
+- pandas
+- FastF1
+- Ergast (gap filling only)
 
-## Usage
+**Frontend**
+- Vanilla HTML/CSS/JS (legacy dashboard)
+- React + TypeScript + Tailwind + shadcn + Recharts
 
-1. Enter a season year (e.g., 2024)
-2. Enter a round number (e.g., 3)
-3. Click "Load Race" to fetch and display results
-4. Toggle between "Finish Position" and "Performance Score" views
-5. The fastest lap of the race is highlighted in yellow
+---
 
-### Performance Scoring (WIP)
+## Design Principles
 
-Scores are now split into two layers:
+- FastF1 is authoritative for lap-level data
+- Ergast fills historical gaps only
+- Deterministic and explainable metrics
+- Robust to SC/VSC and mixed conditions
+- ML added later as optional enhancement
 
-- **Results Score**: outcome-based performance using things like grid → finish, finishing outcome/points, and teammate result comparison.
-- **Execution Score**: race execution using lap-level pace (delta to leader), consistency, stint/degradation behavior, and pit impact metrics.
-
-**Composite Score = 0.4 × Results Score + 0.6 × Execution Score**  
-If not, Composite falls back to Results Score.
-
-(Weights and metrics are still being refined as new features get added.)
-
-
-
-## Development
-
-The dashboard uses:
-- **Backend**: FastAPI (Python)
-- **Frontend**: Vanilla HTML/CSS/JavaScript
-- **Data**: Ergast/Jolipca & FastF1
+---
 
 ## Notes
 
-- The dashboard requires an internet connection to fetch race data
-- Some older races may have incomplete data
-- Performance scores are calculated using z-score normalization
-- Perfomance formula will be refined overtime and include new metrics it will be made so you can pick what you believe is most important
-### Data Sources
-Race data is provided by FastF1 and Ergast/Jolpica.  
-This project is not affiliated with Formula 1, FIA, or any data provider.
+- Internet connection required
+- Older races may have incomplete data
+- Robust scaling (median/MAD, winsorization)
+- Metrics and weights may evolve
+
+---
+
+## Data Sources
+
+- **FastF1**
+- **Ergast**
+
+This project is **not affiliated** with Formula 1, the FIA, or any data provider.
+
+---
 
 ## License
-This project is licensed under the MIT License.
+
+MIT License
+

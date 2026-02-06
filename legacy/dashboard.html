@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula One Data Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Maven+Pro:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Darkrise: dark base + colorful accents */
+            --bg-dark: #0f1629;
+            --bg-card: #161f35;
+            --bg-elevated: #1a2540;
+            --border: rgba(255,255,255,0.1);
+            --primary: #fff;
+            --secondary: #73cfa8;
+            --tertiary: #fb9289;
+            --quaternary: #fde179;
+            --quinary: #73b1ff;
+            --text-default: #94a3b8;
+            --text-dark: #f1f5f9;
+            --text-light: #fff;
+            --accent-gradient: linear-gradient(135deg, var(--secondary) 0%, var(--quinary) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Maven Pro', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-default);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Darkrise navbar - dark, minimal */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text-light);
+            letter-spacing: 0.02em;
+        }
+
+        .nav-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links li { margin: 0; }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 0.95em;
+            font-weight: 500;
+            color: var(--text-default);
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: color 0.2s ease, background 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-light);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-links a.active {
+            color: var(--text-light);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-login {
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: var(--text-default);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-login:hover {
+            border-color: var(--text-default);
+            color: var(--text-light);
+        }
+
+        .btn-signup {
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: var(--bg-dark);
+            background: var(--secondary);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: filter 0.2s, transform 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-signup:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        /* Hero - Darkrise banner style */
+        .hero {
+            text-align: center;
+            padding: 100px 20px 80px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--quaternary);
+            background: rgba(253,225,121,0.15);
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-family: 'Merriweather', serif;
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-default);
+            max-width: 580px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--secondary);
+            color: var(--bg-dark);
+            font-weight: 600;
+            font-size: 0.95em;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: filter 0.2s, transform 0.2s;
+            font-family: inherit;
+        }
+
+        .hero-cta:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+        .hero-cta.outline {
+            background: transparent;
+            color: var(--text-default);
+            border: 2px solid var(--border);
+        }
+
+        .hero-cta.outline:hover {
+            border-color: var(--text-default);
+            color: var(--text-light);
+        }
+
+        .hero-bullets {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--text-default);
+        }
+
+        .hero-bullets span::before {
+            content: "✓ ";
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        /* Features section - dark cards */
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--secondary);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: 'Merriweather', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+
+        .features-section {
+            padding: 80px 20px 100px;
+            background: var(--bg-elevated);
+        }
+
+        .features-intro {
+            text-align: center;
+            max-width: 640px;
+            margin: 0 auto 48px;
+        }
+
+        .features-intro .section-title {
+            margin-bottom: 12px;
+        }
+
+        .features-intro p {
+            color: var(--text-default);
+            font-size: 1.05rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+
+        .feature-card {
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 0 30px rgba(115,207,168,0.15);
+            transform: translateY(-2px);
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 0.95rem;
+            color: var(--text-default);
+            line-height: 1.5;
+        }
+
+        h1, h2 {
+            font-family: 'Merriweather', serif;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-default);
+            font-size: 0.9em;
+        }
+
+        input {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            background: var(--bg-card);
+            color: var(--text-light);
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        button {
+            padding: 12px 30px;
+            background: var(--secondary);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: filter 0.2s, transform 0.2s;
+            align-self: flex-end;
+            font-family: inherit;
+        }
+
+        button:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .view-toggle button {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            color: var(--text-default);
+            border: 1px solid var(--border);
+        }
+
+        .view-toggle button.active {
+            background: var(--secondary);
+            color: var(--bg-dark);
+            border-color: transparent;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-default);
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: rgba(251,146,137,0.15);
+            color: var(--tertiary);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--tertiary);
+        }
+
+        .race-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .race-info h2 {
+            color: var(--text-light);
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .race-info p {
+            color: var(--text-default);
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        thead {
+            background: var(--bg-elevated);
+            color: var(--text-light);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-default);
+        }
+
+        tbody tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        tbody tr.fastest-lap {
+            background: rgba(253,225,121,0.12) !important;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge.finished {
+            background: rgba(115,207,168,0.2);
+            color: var(--secondary);
+        }
+
+        .badge.lapped {
+            background: rgba(253,225,121,0.2);
+            color: var(--quaternary);
+        }
+
+        .badge.retired {
+            background: rgba(251,146,137,0.2);
+            color: var(--tertiary);
+        }
+
+        .performance-score {
+            font-weight: 600;
+            color: var(--quinary);
+        }
+
+        .position {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+
+        /* Page sections for simple single-page navigation */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        #race-overview {
+            padding: 40px 0 60px;
+            min-height: 50vh;
+        }
+
+        #race-overview h2,
+        #race-analyzer h2,
+        #full-season h2,
+        #driver-profile h2,
+        #constructor h2,
+        #how-it-works h2 {
+            color: var(--text-light);
+        }
+
+        .placeholder-text {
+            text-align: center;
+            color: var(--text-default);
+            padding: 60px 20px;
+        }
+
+        /* Race Analyzer: Key Takeaways, Delta Chart, Stint Summary, Raw Accordion */
+        .takeaways-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .takeaways-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .takeaways-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .takeaways-card li {
+            padding: 6px 0;
+            color: var(--text-default);
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .takeaways-card li:last-child { border-bottom: none; }
+        .takeaways-card li::before {
+            content: "• ";
+            color: var(--quaternary);
+        }
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .chart-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .chart-controls label { margin-right: 4px; }
+        .chart-controls select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-elevated);
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+        .driver-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            max-height: 72px;
+            overflow-y: auto;
+            flex: 1;
+            min-width: 200px;
+        }
+        .driver-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 400;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .chart-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.9em;
+        }
+        .chart-toggles label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .compound-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+        }
+        .compound-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .compound-legend-item .swatch {
+            width: 24px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        .stint-strip-container {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .stint-strip-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stint-strip-driver {
+            width: 50px;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--text-light);
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .stint-strip-bar {
+            display: flex;
+            flex: 1;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+        }
+        .stint-block {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 600;
+            color: #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
+            border-right: 1px solid rgba(0,0,0,0.3);
+        }
+        .stint-block:last-child { border-right: none; }
+        .chart-container { position: relative; height: 360px; }
+        .stint-table-wrap { overflow-x: auto; margin-bottom: 24px; }
+        .stint-table-wrap table { margin-top: 0; }
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0;
+        }
+        .accordion-header:hover { background: var(--bg-card); }
+        .accordion-header::after {
+            content: "▼";
+            font-size: 0.8em;
+            color: var(--secondary);
+            transition: transform 0.2s;
+        }
+        .accordion-header.collapsed::after { transform: rotate(-90deg); }
+        .accordion-body {
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        .accordion-body.collapsed { display: none; }
+        .raw-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+        .raw-filters .control-group { margin-bottom: 0; }
+        .raw-filters input[type="number"] { width: 80px; }
+        .raw-filters input[type="text"] { width: 140px; }
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        th.sortable:hover { color: var(--secondary); }
+        th.sortable::after { content: " ⇅"; opacity: 0.5; font-size: 0.85em; }
+
+        @media (max-width: 900px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .nav-wrapper {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+            }
+            .hero {
+                padding: 48px 16px 40px;
+            }
+            .features-section {
+                padding: 40px 16px 60px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-logo">F1 Insights</div>
+            <div class="nav-wrapper">
+                <ul class="nav-links">
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#race-overview">Race Overview</a></li>
+                    <li><a href="#race-analyzer">Race Analyzer</a></li>
+                    <li><a href="#full-season">Full Season</a></li>
+                    <li><a href="#driver-profile">Driver Profile</a></li>
+                    <li><a href="#constructor">Constructor</a></li>
+                    <li><a href="#how-it-works">How it Works</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="#" class="btn-login">Log in</a>
+                    <a href="#" class="btn-signup">Sign up</a>
+                </div>
+            </div>
+        </nav>
+
+        <section id="home" class="page-section active">
+            <div class="hero">
+                <div class="hero-badge">The smartest way to analyze Formula One.</div>
+                <h1>All of Formula One, One analytics platform.</h1>
+                <p class="hero-subtitle">
+                    Gain invaluable predictive analytics and actionable insights empowering you to understand race performance, driver stats, and constructor standings.
+                </p>
+            </div>
+            <div class="features-section">
+                <div class="features-intro">
+                    <div class="section-label">Get proper data & race statistics</div>
+                    <h2 class="section-title">Elements To Get You Started</h2>
+                    <p>Gain invaluable predictive analytics and actionable insights, empowering you to make data-driven decisions about F1 performance.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card" data-nav="race-overview">
+                        <h3>Race Overview</h3>
+                        <p>View complete race results with finish positions, grid starts, fastest laps, and status for any Grand Prix.</p>
+                    </div>
+                    <div class="feature-card" data-nav="race-analyzer">
+                        <h3>Race Analyzer</h3>
+                        <p>Dive into our performance score to see how drivers performed beyond their finishing position.</p>
+                    </div>
+                    <div class="feature-card" data-nav="full-season">
+                        <h3>Full Season</h3>
+                        <p>Track championship standings and points across the entire season for drivers and constructors.</p>
+                    </div>
+                    <div class="feature-card" data-nav="driver-profile">
+                        <h3>Driver Profile</h3>
+                        <p>Get detailed driver statistics, career highlights, and head-to-head comparisons.</p>
+                    </div>
+                    <div class="feature-card" data-nav="constructor">
+                        <h3>Constructor</h3>
+                        <p>Analyze team performance, constructor standings, and reliability metrics.</p>
+                    </div>
+                    <div class="feature-card" data-nav="how-it-works">
+                        <h3>How It Works</h3>
+                        <p>Learn how our performance score is calculated and what insights it reveals about race day.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="race-overview" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">Race Overview</h2>
+
+            <div class="controls" id="race-controls">
+                <div class="control-group">
+                    <label for="season">Season</label>
+                    <input type="number" id="season" value="2025" min="1950" max="2025">
+                </div>
+                <div class="control-group">
+                    <label for="round">Race</label>
+                    <input type="number" id="round" value="1" min="1" max="24">
+                </div>
+                <button onclick="loadRace()">Search</button>
+            </div>
+
+            <div class="view-toggle" id="viewToggle" style="display: none;">
+                <button onclick="switchView('finish')" id="btnFinish" class="active">Finish Position</button>
+                <button onclick="switchView('performance')" id="btnPerformance">Performance Score</button>
+            </div>
+
+            <div id="content">
+                <div class="loading">Enter season and race, then click "Search" to view results.</div>
+            </div>
+        </section>
+
+        <section id="race-analyzer" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">Race Analyzer</h2>
+
+            <div class="controls" id="analyzer-controls">
+                <div class="control-group">
+                    <label for="analyzer-season">Season</label>
+                    <input type="number" id="analyzer-season" value="2025" min="1950" max="2025">
+                </div>
+                <div class="control-group">
+                    <label for="analyzer-round">Race</label>
+                    <input type="number" id="analyzer-round" value="1" min="1" max="24">
+                </div>
+                <button onclick="loadRaceAnalyzer()">Search</button>
+            </div>
+
+            <div id="analyzer-content">
+                <div class="loading">Enter season and race, then click "Search" to view insights and lap analysis.</div>
+            </div>
+        </section>
+
+        <section id="full-season" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">Full Season Overview</h2>
+            <p class="placeholder-text">Content coming soon.</p>
+        </section>
+
+        <section id="driver-profile" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">Driver Profile</h2>
+            <p class="placeholder-text">Content coming soon.</p>
+        </section>
+
+        <section id="constructor" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">Constructor</h2>
+            <p class="placeholder-text">Content coming soon.</p>
+        </section>
+
+        <section id="how-it-works" class="page-section">
+            <h2 style="margin-bottom:16px; text-align:center;">How It Works</h2>
+            <p class="placeholder-text">Content coming soon.</p>
+        </section>
+    </div>
+
+    <script>
+        // Simple navigation: show only one main section at a time
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const pageSections = document.querySelectorAll('.page-section');
+
+        function navigateTo(targetId) {
+            const targetSection = document.getElementById(targetId);
+            if (targetSection && targetSection.classList.contains('page-section')) {
+                pageSections.forEach(sec => sec.classList.remove('active'));
+                targetSection.classList.add('active');
+                navLinks.forEach(l => {
+                    l.classList.toggle('active', l.getAttribute('href') === '#' + targetId);
+                });
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        document.querySelectorAll('[data-nav]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(el.getAttribute('data-nav'));
+            });
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetId = link.getAttribute('href').replace('#', '');
+                const targetSection = document.getElementById(targetId);
+
+                if (targetSection && targetSection.classList.contains('page-section')) {
+                    e.preventDefault();
+                    navigateTo(targetId);
+                }
+            });
+        });
+
+        let currentView = 'finish';
+        let currentData = null;
+
+        async function loadRace() {
+            const season = document.getElementById('season').value;
+            const round = document.getElementById('round').value;
+            const contentDiv = document.getElementById('content');
+            const viewToggle = document.getElementById('viewToggle');
+
+            if (!season || !round) {
+                contentDiv.innerHTML = '<div class="error">Please enter both season and race.</div>';
+                return;
+            }
+
+            contentDiv.innerHTML = '<div class="loading">Loading race data...</div>';
+            viewToggle.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/race/${season}/${round}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to fetch race data');
+                }
+
+                const data = await response.json();
+                currentData = data;
+                currentView = 'finish';
+                displayResults(data, 'finish');
+                viewToggle.style.display = 'flex';
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function switchView(view) {
+            if (view === currentView) return;
+
+            currentView = view;
+            document.getElementById('btnFinish').classList.toggle('active', view === 'finish');
+            document.getElementById('btnPerformance').classList.toggle('active', view === 'performance');
+
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = '<div class="loading">Loading data...</div>';
+
+            try {
+                const season = document.getElementById('season').value;
+                const round = document.getElementById('round').value;
+                if (view === 'performance') {
+                    const response = await fetch(`/api/race/${season}/${round}/performance`);
+                    const data = await response.json();
+                    displayResults(data, 'performance');
+                } else {
+                    displayResults(currentData, 'finish');
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        let raceAnalyzerData = null;
+        let deltaChartInstance = null;
+
+        async function loadRaceAnalyzer() {
+            const season = document.getElementById('analyzer-season').value;
+            const round = document.getElementById('analyzer-round').value;
+            const contentDiv = document.getElementById('analyzer-content');
+
+            if (!season || !round) {
+                contentDiv.innerHTML = '<div class="error">Please enter both season and race.</div>';
+                return;
+            }
+
+            contentDiv.innerHTML = '<div class="loading">Loading race analyzer...</div>';
+
+            try {
+                const response = await fetch(`/api/race_analyzer/${season}/${round}`);
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to load race analyzer');
+                }
+                const data = await response.json();
+                raceAnalyzerData = data;
+                renderRaceAnalyzer(data, contentDiv);
+            } catch (error) {
+                contentDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderRaceAnalyzer(data, contentDiv) {
+            const meta = data.race_meta || {};
+            const laps = data.laps || [];
+            const computed = data.computed || {};
+            const lapsWithDelta = computed.laps_with_delta || [];
+            const stintSummary = computed.stint_summary || [];
+            const insights = computed.insights || [];
+
+            let html = `
+                <div class="race-info">
+                    <h2>${meta.name || '–'}</h2>
+                    <p>${meta.season || ''} Season – Round ${meta.round || ''} · Race Analyzer (FastF1)</p>
+                </div>
+                <div class="takeaways-card">
+                    <h3>Key Takeaways</h3>
+                    <ul>
+                        ${insights.length ? insights.map(i => `<li>${escapeHtml(i)}</li>`).join('') : '<li>No insights for this race.</li>'}
+                    </ul>
+                </div>
+                <div class="chart-card">
+                    <h3>Pace delta vs race-median (clean laps)</h3>
+                    <div class="chart-controls">
+                        <div class="driver-checkboxes" id="delta-driver-checkboxes"></div>
+                        <div class="chart-toggles">
+                            <label><input type="checkbox" id="delta-show-selected-only"> Show selected only</label>
+                            <label><input type="checkbox" id="delta-color-by-compound" checked> Color line by compound</label>
+                        </div>
+                    </div>
+                    <div class="compound-legend" id="compound-legend"></div>
+                    <div class="stint-strip-container" id="stint-strip-container"></div>
+                    <div class="chart-container"><canvas id="delta-chart-canvas"></canvas></div>
+                </div>
+                <div class="stint-table-wrap">
+                    <h3 style="color:var(--text-light); margin-bottom:12px;">Stint Summary</h3>
+                    <table id="stint-summary-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-key="driver">Driver</th>
+                                <th class="sortable" data-key="team">Team</th>
+                                <th class="sortable" data-key="stint">Stint</th>
+                                <th class="sortable" data-key="compound">Compound</th>
+                                <th class="sortable" data-key="laps_in_stint">Laps</th>
+                                <th class="sortable" data-key="avg_lap_time">Avg pace</th>
+                                <th class="sortable" data-key="fastest_lap_time">Fastest</th>
+                                <th class="sortable" data-key="std_dev">Std dev</th>
+                                <th class="sortable" data-key="degradation_slope_sec_per_lap">Degradation (s/lap)</th>
+                                <th class="sortable" data-key="avg_pace_delta">Avg pace Δ (vs race-median clean laps)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stint-summary-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="accordion-section" style="margin-top:24px;">
+                    <button type="button" class="accordion-header collapsed" id="raw-lap-accordion-btn" aria-expanded="false">Raw Lap Data</button>
+                    <div class="accordion-body collapsed" id="raw-lap-accordion-body">
+                        <div class="raw-filters">
+                            <div class="control-group">
+                                <label for="filter-driver">Driver</label>
+                                <select id="filter-driver"><option value="">All</option></select>
+                            </div>
+                            <div class="control-group">
+                                <label for="filter-compound">Compound</label>
+                                <select id="filter-compound"><option value="">All</option></select>
+                            </div>
+                            <div class="control-group">
+                                <label for="filter-stint">Stint</label>
+                                <select id="filter-stint"><option value="">All</option></select>
+                            </div>
+                            <div class="control-group">
+                                <label for="filter-lap-min">Lap min</label>
+                                <input type="number" id="filter-lap-min" placeholder="Min" min="1">
+                            </div>
+                            <div class="control-group">
+                                <label for="filter-lap-max">Lap max</label>
+                                <input type="number" id="filter-lap-max" placeholder="Max">
+                            </div>
+                            <div class="control-group">
+                                <label for="filter-search">Search</label>
+                                <input type="text" id="filter-search" placeholder="Driver, team...">
+                            </div>
+                        </div>
+                        <table id="raw-lap-table">
+                            <thead>
+                                <tr>
+                                    <th>Driver</th>
+                                    <th>Team</th>
+                                    <th>Lap</th>
+                                    <th>Lap time</th>
+                                    <th>Compound</th>
+                                    <th>Stint</th>
+                                    <th>Pit lap</th>
+                                </tr>
+                            </thead>
+                            <tbody id="raw-lap-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+
+            // Stint summary rows
+            const tbody = document.getElementById('stint-summary-tbody');
+            stintSummary.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(String(row.driver || '–'))}</td>
+                    <td>${escapeHtml(String(row.team || '–'))}</td>
+                    <td>${row.stint ?? '–'}</td>
+                    <td>${escapeHtml(String(row.compound || '–'))}</td>
+                    <td>${row.laps_in_stint ?? '–'}</td>
+                    <td>${formatLapTime(row.avg_lap_time)}</td>
+                    <td>${formatLapTime(row.fastest_lap_time)}</td>
+                    <td>${row.std_dev != null ? Number(row.std_dev).toFixed(3) : '–'}</td>
+                    <td>${row.degradation_slope_sec_per_lap != null ? Number(row.degradation_slope_sec_per_lap).toFixed(4) : '–'}</td>
+                    <td>${row.avg_pace_delta != null ? Number(row.avg_pace_delta).toFixed(3) : '–'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Sortable stint table
+            document.querySelectorAll('#stint-summary-table th.sortable').forEach(th => {
+                th.addEventListener('click', () => sortStintTable(th.dataset.key));
+            });
+
+            // Raw lap filters and table
+            populateRawFilters(laps);
+            renderRawLapTable(laps);
+
+            document.getElementById('filter-driver').addEventListener('change', () => renderRawLapTable(laps));
+            document.getElementById('filter-compound').addEventListener('change', () => renderRawLapTable(laps));
+            document.getElementById('filter-stint').addEventListener('change', () => renderRawLapTable(laps));
+            document.getElementById('filter-lap-min').addEventListener('input', () => renderRawLapTable(laps));
+            document.getElementById('filter-lap-max').addEventListener('input', () => renderRawLapTable(laps));
+            document.getElementById('filter-search').addEventListener('input', () => renderRawLapTable(laps));
+
+            // Accordion
+            document.getElementById('raw-lap-accordion-btn').addEventListener('click', () => {
+                const btn = document.getElementById('raw-lap-accordion-btn');
+                const body = document.getElementById('raw-lap-accordion-body');
+                const collapsed = body.classList.toggle('collapsed');
+                btn.classList.toggle('collapsed', collapsed);
+                btn.setAttribute('aria-expanded', !collapsed);
+            });
+
+            // Pace delta chart (top 6 drivers by best avg_pace_delta, with stint strip)
+            const stintRanges = computed.stint_ranges || [];
+            buildDeltaChart(lapsWithDelta, stintSummary, stintRanges);
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function formatLapTime(seconds) {
+            if (seconds == null || seconds === undefined || isNaN(seconds)) return '–';
+            const totalSeconds = Number(seconds);
+            const minutes = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${minutes}:${secs.toFixed(3).padStart(6, '0')}`;
+        }
+
+        // Compound colors for chart (F1-style)
+        const COMPOUND_COLORS = {
+            SOFT: '#ff3333',
+            MEDIUM: '#ffcc00',
+            HARD: '#ffffff',
+            INTERMEDIATE: '#43b02a',
+            WET: '#0066ff',
+            UNKNOWN: '#888888'
+        };
+        // Driver line colors (when not coloring by compound)
+        const DRIVER_COLORS = ['#73cfa8', '#73b1ff', '#fde179', '#fb9289', '#c084fc', '#94a3b8', '#f472b6', '#34d399', '#fbbf24', '#a78bfa'];
+
+        function getTopDriversByDelta(stintSummary, n) {
+            const withDelta = (stintSummary || []).filter(s => s.avg_pace_delta != null);
+            if (withDelta.length === 0) return [];
+            const byDriver = {};
+            withDelta.forEach(s => {
+                const d = s.driver;
+                if (!byDriver[d] || s.avg_pace_delta < byDriver[d]) byDriver[d] = s.avg_pace_delta;
+            });
+            return Object.entries(byDriver).sort((a, b) => a[1] - b[1]).slice(0, n).map(([d]) => d);
+        }
+
+        function buildDeltaChart(lapsWithDelta, stintSummary, stintRanges) {
+            if (deltaChartInstance) {
+                deltaChartInstance.destroy();
+                deltaChartInstance = null;
+            }
+            const drivers = [...new Set((lapsWithDelta || []).map(l => l.driver).filter(Boolean))];
+            // All drivers checked by default; user unchecks to hide
+            const defaultSelected = drivers;
+
+            // Build driver checkboxes
+            const container = document.getElementById('delta-driver-checkboxes');
+            if (!container) return;
+            container.innerHTML = '';
+            drivers.forEach((driver) => {
+                const label = document.createElement('label');
+                const checked = defaultSelected.includes(driver);
+                label.innerHTML = `<input type="checkbox" class="delta-driver-cb" data-driver="${escapeHtml(driver)}" ${checked ? 'checked' : ''}> ${escapeHtml(driver)}`;
+                container.appendChild(label);
+            });
+
+            // Build compound legend
+            const legendContainer = document.getElementById('compound-legend');
+            if (legendContainer) {
+                const usedCompounds = [...new Set((lapsWithDelta || []).map(l => l.compound).filter(Boolean))];
+                legendContainer.innerHTML = usedCompounds.map(c => {
+                    const color = COMPOUND_COLORS[c.toUpperCase()] || COMPOUND_COLORS.UNKNOWN;
+                    return `<div class="compound-legend-item"><span class="swatch" style="background:${color}"></span>${c}</div>`;
+                }).join('');
+            }
+
+            // Compute max lap for stint strip width calculation
+            const maxLap = Math.max(...(lapsWithDelta || []).map(l => l.lap_number || l.lap || 0), 1);
+
+            // Build stint summary strip
+            function buildStintStrip() {
+                const stripContainer = document.getElementById('stint-strip-container');
+                if (!stripContainer) return;
+                const selected = Array.from(document.querySelectorAll('.delta-driver-cb:checked')).map(cb => cb.dataset.driver);
+                if (selected.length === 0) {
+                    stripContainer.innerHTML = '';
+                    return;
+                }
+                // Group stint ranges by driver
+                const rangesByDriver = {};
+                (stintRanges || []).forEach(r => {
+                    if (!rangesByDriver[r.driver]) rangesByDriver[r.driver] = [];
+                    rangesByDriver[r.driver].push(r);
+                });
+                // Build HTML
+                let html = '';
+                selected.forEach(driver => {
+                    const ranges = rangesByDriver[driver] || [];
+                    if (ranges.length === 0) return;
+                    ranges.sort((a, b) => a.stint - b.stint);
+                    html += `<div class="stint-strip-row">
+                        <div class="stint-strip-driver">${escapeHtml(driver)}</div>
+                        <div class="stint-strip-bar">`;
+                    ranges.forEach(r => {
+                        const compound = (r.compound || 'UNKNOWN').toUpperCase();
+                        const color = COMPOUND_COLORS[compound] || COMPOUND_COLORS.UNKNOWN;
+                        const widthPct = ((r.length_laps / maxLap) * 100).toFixed(2);
+                        const label = `${r.start_lap}–${r.end_lap} (${(r.compound || '?').charAt(0)})`;
+                        html += `<div class="stint-block" style="width:${widthPct}%; background:${color};" title="${r.compound}: Laps ${r.start_lap}–${r.end_lap}">${label}</div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                stripContainer.innerHTML = html;
+            }
+            buildStintStrip();
+
+            const ctx = document.getElementById('delta-chart-canvas');
+            if (!ctx || !window.Chart) return;
+
+            // Identify pit laps for each driver (infer from stint changes if not explicitly marked)
+            function getPitLaps() {
+                const pitLaps = {}; // { driver: Set of lap numbers }
+                const driverLaps = {};
+                (lapsWithDelta || []).forEach(lap => {
+                    const d = lap.driver;
+                    const lapNum = lap.lap_number != null ? lap.lap_number : lap.lap;
+                    if (!driverLaps[d]) driverLaps[d] = [];
+                    driverLaps[d].push({ lap: lapNum, stint: lap.stint, isPit: lap.is_pit_lap || lap.pit_lap });
+                });
+                // For each driver, find pit laps (either marked or where stint increments)
+                Object.keys(driverLaps).forEach(d => {
+                    pitLaps[d] = new Set();
+                    const sorted = driverLaps[d].sort((a, b) => a.lap - b.lap);
+                    for (let i = 0; i < sorted.length; i++) {
+                        if (sorted[i].isPit) pitLaps[d].add(sorted[i].lap);
+                        if (i > 0 && sorted[i].stint != null && sorted[i-1].stint != null && sorted[i].stint !== sorted[i-1].stint) {
+                            // Stint changed - previous lap was a pit in-lap
+                            pitLaps[d].add(sorted[i-1].lap);
+                        }
+                    }
+                });
+                return pitLaps;
+            }
+
+            function getDatasets() {
+                const selected = Array.from(document.querySelectorAll('.delta-driver-cb:checked')).map(cb => cb.dataset.driver);
+                const selectedSet = new Set(selected);
+                const colorByCompound = document.getElementById('delta-color-by-compound')?.checked ?? true;
+                const pitLaps = getPitLaps();
+
+                // Group laps by driver (ONE dataset per driver = continuous line)
+                const byDriver = {};
+                (lapsWithDelta || []).forEach(lap => {
+                    if (lap.pace_delta == null || lap.pace_delta === undefined) return;
+                    const d = lap.driver;
+                    if (!selectedSet.has(d)) return;
+                    if (!byDriver[d]) byDriver[d] = { driver: d, laps: [] };
+                    const lapNum = lap.lap_number != null ? lap.lap_number : lap.lap;
+                    const isPit = pitLaps[d]?.has(lapNum) || false;
+                    byDriver[d].laps.push({
+                        x: lapNum,
+                        y: Number(lap.pace_delta),
+                        compound: lap.compound || 'UNKNOWN',
+                        stint: lap.stint ?? 1,
+                        isPit: isPit,
+                        driver: d
+                    });
+                });
+
+                // Create one dataset per driver with segment coloring
+                return Object.values(byDriver).map((group, driverIdx) => {
+                    // Sort laps by lap number for continuous line
+                    group.laps.sort((a, b) => a.x - b.x);
+
+                    const driverColor = DRIVER_COLORS[driverIdx % DRIVER_COLORS.length];
+
+                    return {
+                        label: group.driver,
+                        data: group.laps,
+                        // Segment coloring: change line color based on compound
+                        segment: colorByCompound ? {
+                            borderColor: ctx => {
+                                const p0 = ctx.p0?.raw;
+                                if (p0 && p0.compound) {
+                                    return COMPOUND_COLORS[p0.compound.toUpperCase()] || COMPOUND_COLORS.UNKNOWN;
+                                }
+                                return driverColor;
+                            }
+                        } : undefined,
+                        borderColor: colorByCompound ? undefined : driverColor,
+                        backgroundColor: 'transparent',
+                        tension: 0.15,
+                        borderWidth: 2.5,
+                        // Pit markers: larger triangle on pit laps, hidden on others
+                        pointRadius: group.laps.map(p => p.isPit ? 7 : 0),
+                        pointStyle: group.laps.map(p => p.isPit ? 'triangle' : 'circle'),
+                        pointBackgroundColor: group.laps.map(p => p.isPit ? '#ffffff' : 'transparent'),
+                        pointBorderColor: group.laps.map(p => {
+                            if (p.isPit) return '#ff0000';
+                            return colorByCompound ? (COMPOUND_COLORS[p.compound.toUpperCase()] || driverColor) : driverColor;
+                        }),
+                        pointBorderWidth: group.laps.map(p => p.isPit ? 2 : 0),
+                        pointHoverRadius: 8,
+                        spanGaps: true, // Keep line continuous
+                        _driverIdx: driverIdx,
+                        _driverColor: driverColor
+                    };
+                });
+            }
+
+            deltaChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { datasets: getDatasets() },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: true,
+                        axis: 'xy'
+                    },
+                    plugins: {
+                        legend: { display: false }, // Use driver checkboxes instead
+                        tooltip: {
+                            mode: 'nearest',
+                            intersect: true,
+                            callbacks: {
+                                title: (items) => {
+                                    if (!items.length) return '';
+                                    const lap = items[0].raw.x;
+                                    if (lap === 1) return 'Lap 1 — Race Start';
+                                    return `Lap ${lap}`;
+                                },
+                                label: (ctx) => {
+                                    const pt = ctx.raw;
+                                    const delta = pt.y.toFixed(3);
+                                    const pit = pt.isPit ? ' [PIT]' : '';
+                                    return `${pt.driver}: Pace delta vs race-median (clean laps) ${delta}s • ${pt.compound} stint ${pt.stint}${pit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Lap', color: '#94a3b8' },
+                            type: 'linear',
+                            min: 1,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    if (value === 1) return '1 (Race Start / No Pace Baseline)';
+                                    return value;
+                                }
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Pace delta vs race-median (clean laps) (s)', color: '#94a3b8' },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+
+            function updateChart() {
+                if (!deltaChartInstance) return;
+                deltaChartInstance.data.datasets = getDatasets();
+                deltaChartInstance.update();
+                buildStintStrip();
+            }
+            document.querySelectorAll('.delta-driver-cb').forEach(cb => cb.addEventListener('change', updateChart));
+            document.getElementById('delta-show-selected-only')?.addEventListener('change', updateChart);
+            document.getElementById('delta-color-by-compound')?.addEventListener('change', updateChart);
+        }
+
+        function sortStintTable(key) {
+            if (!raceAnalyzerData || !raceAnalyzerData.computed || !raceAnalyzerData.computed.stint_summary) return;
+            let summary = [...raceAnalyzerData.computed.stint_summary];
+            const numKeys = ['stint', 'laps_in_stint', 'avg_lap_time', 'fastest_lap_time', 'std_dev', 'degradation_slope_sec_per_lap', 'avg_pace_delta'];
+            const isNum = numKeys.includes(key);
+            summary.sort((a, b) => {
+                let va = a[key];
+                let vb = b[key];
+                if (va == null) va = isNum ? Infinity : '';
+                if (vb == null) vb = isNum ? Infinity : '';
+                if (isNum) return (Number(va) || 0) - (Number(vb) || 0);
+                return String(va).localeCompare(String(vb));
+            });
+            raceAnalyzerData.computed.stint_summary = summary;
+            const tbody = document.getElementById('stint-summary-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            summary.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(String(row.driver || '–'))}</td>
+                    <td>${escapeHtml(String(row.team || '–'))}</td>
+                    <td>${row.stint ?? '–'}</td>
+                    <td>${escapeHtml(String(row.compound || '–'))}</td>
+                    <td>${row.laps_in_stint ?? '–'}</td>
+                    <td>${formatLapTime(row.avg_lap_time)}</td>
+                    <td>${formatLapTime(row.fastest_lap_time)}</td>
+                    <td>${row.std_dev != null ? Number(row.std_dev).toFixed(3) : '–'}</td>
+                    <td>${row.degradation_slope_sec_per_lap != null ? Number(row.degradation_slope_sec_per_lap).toFixed(4) : '–'}</td>
+                    <td>${row.avg_pace_delta != null ? Number(row.avg_pace_delta).toFixed(3) : '–'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function populateRawFilters(laps) {
+            const drivers = [...new Set(laps.map(l => l.driver).filter(Boolean))].sort();
+            const compounds = [...new Set(laps.map(l => l.compound).filter(Boolean))].sort();
+            const stints = [...new Set(laps.map(l => l.stint).filter(v => v != null))].sort((a, b) => a - b);
+            const selDriver = document.getElementById('filter-driver');
+            const selCompound = document.getElementById('filter-compound');
+            const selStint = document.getElementById('filter-stint');
+            if (selDriver) {
+                selDriver.innerHTML = '<option value="">All</option>' + drivers.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+            }
+            if (selCompound) {
+                selCompound.innerHTML = '<option value="">All</option>' + compounds.map(c => `<option value="${escapeHtml(String(c))}">${escapeHtml(String(c))}</option>`).join('');
+            }
+            if (selStint) {
+                selStint.innerHTML = '<option value="">All</option>' + stints.map(s => `<option value="${s}">${s}</option>`).join('');
+            }
+        }
+
+        function renderRawLapTable(laps) {
+            const driver = (document.getElementById('filter-driver') || {}).value;
+            const compound = (document.getElementById('filter-compound') || {}).value;
+            const stint = (document.getElementById('filter-stint') || {}).value;
+            const lapMin = (document.getElementById('filter-lap-min') || {}).value;
+            const lapMax = (document.getElementById('filter-lap-max') || {}).value;
+            const search = ((document.getElementById('filter-search') || {}).value || '').toLowerCase();
+            let filtered = laps.filter(l => {
+                if (driver && l.driver !== driver) return false;
+                if (compound && String(l.compound) !== compound) return false;
+                if (stint !== '' && l.stint != null && Number(l.stint) !== Number(stint)) return false;
+                const lap = l.lap != null ? l.lap : l.lap_number;
+                if (lapMin && lap != null && lap < Number(lapMin)) return false;
+                if (lapMax && lap != null && lap > Number(lapMax)) return false;
+                if (search && !(String(l.driver || '') + ' ' + String(l.team || '')).toLowerCase().includes(search)) return false;
+                return true;
+            });
+            const tbody = document.getElementById('raw-lap-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            filtered.forEach(lap => {
+                const lapNum = lap.lap != null ? lap.lap : lap.lap_number;
+                const lapNumDisplay = lapNum === 1 ? '1 (Race Start / No Pace Baseline)' : (lapNum ?? '–');
+                const lapTime = formatLapTime(lap.lap_time_s);
+                const pitLap = lap.pit_lap || lap.is_pit_lap ? 'Yes' : '–';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(String(lap.driver || '–'))}</td>
+                    <td>${escapeHtml(String(lap.team || '–'))}</td>
+                    <td class="position">${lapNumDisplay}</td>
+                    <td>${lapTime}</td>
+                    <td>${lap.compound ?? '–'}</td>
+                    <td>${lap.stint ?? '–'}</td>
+                    <td>${pitLap}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('analyzer-season').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRaceAnalyzer();
+        });
+        document.getElementById('analyzer-round').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRaceAnalyzer();
+        });
+
+        function displayResults(data, view) {
+            const contentDiv = document.getElementById('content');
+            const raceInfo = data.race_info;
+            const results = data.results;
+
+            let html = `
+                <div class="race-info">
+                    <h2>${raceInfo.raceName}</h2>
+                    <p>${raceInfo.season} Season - Round ${raceInfo.round}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Driver</th>
+                            <th>Constructor</th>
+                            <th>Grid</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Points</th>
+                            ${view === 'finish' ? '<th>Fastest Lap</th>' : '<th>Performance</th>'}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach((result, index) => {
+                const fastestLapClass = result.has_fastest_lap ? 'fastest-lap' : '';
+
+                // Map "DNF" to red badge and attach tooltip with reason/lap
+                let statusClass = 'finished';
+                let statusLabel = result.status;
+                let titleAttr = '';
+
+                if (result.status === 'DNF') {
+                    statusClass = 'retired';
+                    statusLabel = 'DNF';
+
+                    const reason = (result.dnf_reason || '').toString();
+                    const lap = result.dnf_lap;
+
+                    const parts = [];
+                    if (reason) parts.push(`Reason: ${reason}`);
+                    if (lap !== null && lap !== undefined) parts.push(`Lap: ${lap}`);
+
+                    if (parts.length > 0) {
+                        // Basic escape for double quotes in tooltip text
+                        const tooltip = parts.join(' | ').replace(/"/g, '&quot;');
+                        titleAttr = ` title="${tooltip}"`;
+                    }
+                } else if (result.status === 'Finished') {
+                    statusClass = 'finished';
+                }
+
+                html += `
+                    <tr class="${fastestLapClass}">
+                        <td class="position">${result.Finish}</td>
+                        <td>${result.driver}</td>
+                        <td>${result.constructor}</td>
+                        <td>${result.grid}</td>
+                        <td><span class="badge ${statusClass}"${titleAttr}>${statusLabel}</span></td>
+                        <td>${result.time}</td>
+                        <td>${result.points}</td>
+                        ${view === 'finish' 
+                            ? `<td>${result.fastest_lap || '-'}</td>` 
+                            : `<td class="performance-score">${result.Performance.toFixed(3)}</td>`}
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        // Allow Enter key to trigger load
+        document.getElementById('season').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRace();
+        });
+        document.getElementById('round').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadRace();
+        });
+    </script>
+</body>
+</html>

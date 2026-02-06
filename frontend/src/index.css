@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* Design tokens (single source of truth) */
+:root {
+  --bg: #070a12;
+  --panel: rgba(255, 255, 255, 0.06);
+  --panel2: rgba(255, 255, 255, 0.08);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --accent1: #6366f1;
+  --accent2: #ec4899;
+
+  /* Legacy mapping for existing var(--color-*) usage */
+  --color-bg-dark: var(--bg);
+  --color-bg-card: var(--panel);
+  --color-bg-elevated: var(--panel2);
+  --color-text-default: var(--text);
+  --color-text-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--text);
+  --color-secondary: var(--accent1);
+  --color-tertiary: #fb9289;
+  --color-quaternary: #fde179;
+  --color-quinary: #73b1ff;
+}
+
+@theme {
+  /* Tailwind theme parity with design tokens */
+  --color-bg-dark: #070a12;
+  --color-bg-card: rgba(255, 255, 255, 0.06);
+  --color-bg-elevated: rgba(255, 255, 255, 0.08);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-primary: #f1f5f9;
+  --color-secondary: #6366f1;
+  --color-tertiary: #fb9289;
+  --color-quaternary: #fde179;
+  --color-quinary: #73b1ff;
+  --color-text-muted: #94a3b8;
+  --color-text-default: #f1f5f9;
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif, "Segoe UI", Roboto;
+  background: var(--bg);
+  color: var(--muted);
+  min-height: 100vh;
+}
+
+/* Global background: glow blobs + optional noise (used by layout wrapper) */
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.page-bg::before,
+.page-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.page-bg::before {
+  width: 60vmax;
+  height: 60vmax;
+  top: -20vmax;
+  right: -10vmax;
+  background: radial-gradient(circle, var(--accent1) 0%, transparent 70%);
+}
+
+.page-bg::after {
+  width: 50vmax;
+  height: 50vmax;
+  bottom: -15vmax;
+  left: -15vmax;
+  background: radial-gradient(circle, var(--accent2) 0%, transparent 70%);
+}
+
+.page-bg .glow-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.page-bg .glow-blob-1 {
+  width: 40vmax;
+  height: 40vmax;
+  top: 40%;
+  left: 50%;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+}
+
+/* Subtle noise overlay (pure CSS) */
+.page-bg .noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Glass panel utility */
+.glass-panel {
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.glass-panel-2 {
+  background: var(--panel2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* Theme scrollbars (Darkrise-style dark theme) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.06);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.4);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}

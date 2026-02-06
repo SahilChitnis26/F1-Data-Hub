@@ -7,3 +7,8 @@ data/FastF1Cache/
 # Ergast lap-times cache
 data/cache/
 *.sqlite
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.tmp/

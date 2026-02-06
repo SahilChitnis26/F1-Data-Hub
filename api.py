@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 import pandas as pd
@@ -40,6 +41,9 @@ def _analyzer_cache_set(key: str, payload: dict) -> None:
 
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent
+FRONTEND_DIST = Path(__file__).parent / "frontend" / "dist"
+ASSETS_DIR = FRONTEND_DIST / "assets"
+INDEX_HTML = FRONTEND_DIST / "index.html"
 
 
 class RaceRequest(BaseModel):
@@ -47,14 +51,17 @@ class RaceRequest(BaseModel):
     round_no: int
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def read_root():
-    """Serve the dashboard HTML page."""
-    dashboard_path = BASE_DIR / "dashboard.html"
-    if not dashboard_path.exists():
-        raise HTTPException(status_code=500, detail=f"Dashboard file not found at {dashboard_path}")
-    with open(dashboard_path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    """Serve the React app index.html (production build)."""
+    if not INDEX_HTML.exists():
+        return JSONResponse(
+            status_code=503,
+            content={
+                "detail": "Frontend not built. Run: cd frontend && npm run build",
+            },
+        )
+    return FileResponse(INDEX_HTML)
 
 
 def normalize_status_and_time(df: pd.DataFrame) -> pd.DataFrame:
@@ -360,7 +367,6 @@ async def get_race_analyzer(
                 "race_meta": race_meta,
                 "laps": [],
                 "computed": {
-                    "leader_by_lap": {},
                     "laps_with_delta": [],
                     "stint_summary": [],
                     "stint_ranges": [],
@@ -386,7 +392,7 @@ async def get_race_analyzer(
         results_list = composite_df[["driver", "results_score"]].to_dict(orient="records")
         composite_list = composite_df.to_dict(orient="records")
 
-        # Raw laps
+        # Raw laps: include track_state, yellow_sectors, state_label (pit remains separate)
         raw_cols = ["driver", "team", "lap_number", "lap_time_s", "compound", "stint"]
         if "is_pit_lap" in df.columns:
             df = df.copy()
@@ -395,6 +401,9 @@ async def get_race_analyzer(
             df = df.copy()
             df["pit_lap"] = None
         raw_cols.append("pit_lap")
+        for c in ("track_state", "yellow_sectors", "state_label"):
+            if c in df.columns:
+                raw_cols.append(c)
         df_raw = df[[c for c in raw_cols if c in df.columns]].copy()
         df_raw = df_raw.rename(columns={"lap_number": "lap"})
         df_raw = df_raw.where(pd.notna(df_raw), None)
@@ -406,12 +415,17 @@ async def get_race_analyzer(
                 row["stint"] = int(row["stint"])
             if isinstance(row.get("lap_time_s"), (float, int)) and not math.isnan(row["lap_time_s"]):
                 row["lap_time_s"] = round(float(row["lap_time_s"]), 4)
+            # Ensure yellow_sectors is a list of ints for JSON (when present)
+            if "yellow_sectors" in row and row["yellow_sectors"] is not None:
+                try:
+                    row["yellow_sectors"] = [int(x) for x in row["yellow_sectors"] if x is not None]
+                except (TypeError, ValueError):
+                    row["yellow_sectors"] = []
 
         payload = {
             "race_meta": race_meta,
             "laps": laps_raw,
             "computed": {
-                "leader_by_lap": computed["leader_by_lap"],
                 "laps_with_delta": computed["laps_with_delta"],
                 "stint_summary": computed["stint_summary"],
                 "stint_ranges": computed["stint_ranges"],
@@ -433,6 +447,24 @@ async def get_race_analyzer(
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# Serve React build: static assets and SPA fallback (must be after all API routes)
+if ASSETS_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
+
+
+@app.get("/{full_path:path}")
+async def spa_fallback(full_path: str):
+    """Serve index.html for client-side routes; 404 for /api/... that did not match."""
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+    if INDEX_HTML.exists():
+        return FileResponse(INDEX_HTML)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Frontend not built. Run: cd frontend && npm run build"},
+    )
 
 
 if __name__ == "__main__":
