@@ -107,7 +107,7 @@ http://127.0.0.1:8000
   - Tire stints and degradation
   - Driver execution independent of finishing position
 
-  ### Track Replay & Visualization
+### Track Replay & Visualization
 - Interactive **circuit track map** rendered from FastF1 positional data
 - Replay driver positions in real time with adjustable playback speed
 - Compare multiple drivers simultaneously with color-coded overlays
@@ -272,6 +272,7 @@ Returns race results sorted by performance score.
 - Older races may have incomplete data
 - Robust scaling (median/MAD, winsorization)
 - Metrics and weights may evolve
+- Batch files included for Windows users who are not using Docker
 
 ---
 
