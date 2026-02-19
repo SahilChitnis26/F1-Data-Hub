@@ -1,14 +1,53 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+env/
+*.egg-info/
+*.egg
 
-# FastF1 cache
-data/FastF1Cache/
-# Ergast lap-times cache
+# FastF1 / data caches
+fastf1_cache/
+cache/
 data/cache/
+data/FastF1Cache/
 *.sqlite
 
-# Frontend (React/Vite)
+# Node / Vite / frontend
+node_modules/
+dist/
+build/
+.vite/
+.parcel-cache/
 frontend/node_modules/
 frontend/dist/
+frontend/build/
+frontend/.vite/
 frontend/.tmp/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
