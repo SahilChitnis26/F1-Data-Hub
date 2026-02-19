@@ -15,6 +15,12 @@ requests>=2.28.0
 # Lap-level telemetry (deep analysis, execution score)
 fastf1>=3.0.0
 
+# Track map / circuit visualization (replay, track layout)
+# trackmap is not on PyPI; install from your Git repo, e.g.:
+#   pip install "trackmap @ git+https://github.com/<org>/trackmap.git"
+# Dependencies typically needed for track map plotting (e.g. with FastF1):
+matplotlib>=3.7.0
+
 # Development / testing (optional)
 pytest>=7.0.0
 pytest-asyncio>=0.21.0

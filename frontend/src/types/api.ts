@@ -114,3 +114,25 @@ export interface RaceResultsResponse {
   race_info: RaceInfo;
   results: RaceResultRow[];
 }
+
+/** /api/races/{race_id}/replay/track response */
+export interface ReplayTrackMeta {
+  race_id: string;
+  /** Stable key for per-track orientation overrides (e.g. year_round or circuitId) */
+  track_key?: string;
+  drivers: string[];
+  lap_start: number;
+  lap_end: number;
+  sample_hz: number;
+  time_unit: string;
+  coord_unit: string;
+}
+
+export interface ReplayTrackResponse {
+  meta: ReplayTrackMeta;
+  timeline_ms: number[];
+  series: Record<string, { x: number[]; y: number[] }>;
+  /** Present when session/telemetry not supported */
+  supported?: boolean;
+  message?: string;
+}

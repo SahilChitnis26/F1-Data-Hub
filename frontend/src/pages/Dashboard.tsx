@@ -6,15 +6,18 @@ import { PaceDeltaChartCard } from "@/components/charts/PaceDeltaChartCard";
 import { DriverFilterPanel } from "@/components/race/DriverFilterPanel";
 import { StintSummaryTable } from "@/components/StintSummaryTable";
 import { RawLapAccordion } from "@/components/RawLapAccordion";
+import { RaceReplayTrackView } from "@/components/RaceReplayTrackView";
 import { useRaceAnalyzer } from "@/hooks/useRaceAnalyzer";
 import { useRaceResults, type RaceResultsView } from "@/hooks/useRaceResults";
 import { DRIVER_COLORS } from "@/components/charts/PaceDeltaChart";
 import { cn } from "@/lib/utils";
+import { ENABLE_RACE_REPLAY_TRACK_VIEW } from "@/lib/constants";
 
 type SectionId =
   | "home"
   | "race-overview"
   | "race-analyzer"
+  | "track-view"
   | "full-season"
   | "driver-profile"
   | "constructor"
@@ -72,6 +75,7 @@ export default function Dashboard() {
     { id: "home", label: "Home" },
     { id: "race-overview", label: "Race Overview" },
     { id: "race-analyzer", label: "Race Analyzer" },
+    ...(ENABLE_RACE_REPLAY_TRACK_VIEW ? [{ id: "track-view" as const, label: "Track View" }] : []),
     { id: "full-season", label: "Full Season" },
     { id: "driver-profile", label: "Driver Profile" },
     { id: "constructor", label: "Constructor" },
@@ -148,6 +152,7 @@ export default function Dashboard() {
               {[
                 { nav: "race-overview", title: "Race Overview", desc: "View complete race results with finish positions, grid starts, fastest laps, and status for any Grand Prix." },
                 { nav: "race-analyzer", title: "Race Analyzer", desc: "Dive into our performance score to see how drivers performed beyond their finishing position." },
+                ...(ENABLE_RACE_REPLAY_TRACK_VIEW ? [{ nav: "track-view" as const, title: "Track View", desc: "Visualize race progression on the circuit with replay controls and track view." }] : []),
                 { nav: "full-season", title: "Full Season", desc: "Track championship standings and points across the entire season for drivers and constructors." },
                 { nav: "driver-profile", title: "Driver Profile", desc: "Get detailed driver statistics, career highlights, and head-to-head comparisons." },
                 { nav: "constructor", title: "Constructor", desc: "Analyze team performance, constructor standings, and reliability metrics." },
@@ -326,6 +331,38 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        {ENABLE_RACE_REPLAY_TRACK_VIEW && (
+          <section
+            id="track-view"
+            className={cn("pt-16 pb-20 md:pt-20 md:pb-24", activeSection !== "track-view" && "hidden")}
+          >
+            <div className="mx-auto max-w-4xl">
+              <h2 className="mb-8 text-center text-xl font-semibold text-[var(--color-text-default)] md:text-2xl">
+                Track View
+              </h2>
+              <div className="mb-8 flex justify-center">
+                <RaceControls
+                  season={season}
+                  round={round}
+                  onSeasonChange={setSeason}
+                  onRoundChange={setRound}
+                  onSearch={handleSearch}
+                />
+              </div>
+              <div className="min-h-[200px] space-y-6">
+                <RaceReplayTrackView
+                  season={searchSeason}
+                  round={searchRound}
+                  availableDrivers={
+                    raceResults?.results?.map((r) => r.driver).filter(Boolean) ??
+                    []
+                  }
+                />
+              </div>
+            </div>
+          </section>
+        )}
 
         <section
           id="full-season"

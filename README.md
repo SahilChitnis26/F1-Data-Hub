@@ -107,19 +107,14 @@ http://127.0.0.1:8000
   - Tire stints and degradation
   - Driver execution independent of finishing position
 
-### Season & Driver Views (Work in Progress)
-- Full-season breakdown of:
-  - Car performance trends
-  - Constructor upgrades and performance shifts
-- Detailed driver profiles:
-  - Teammate comparisons
-  - Strengths and weaknesses derived from data
-- Constructor dashboards:
-  - Average performance score
-  - Reliability metrics
-  - Strategy and pit efficiency
+  ### Track Replay & Visualization
+- Interactive **circuit track map** rendered from FastF1 positional data
+- Replay driver positions in real time with adjustable playback speed
+- Compare multiple drivers simultaneously with color-coded overlays
+- Scrubbable timeline with custom lap range selection
+- Automatic track normalization for consistent orientation across circuits
+- Clean, responsive canvas rendering integrated into the main dashboard
 
----
 
 ## Planned Features
 
@@ -129,8 +124,18 @@ http://127.0.0.1:8000
   - Tyre stint effectiveness during the race
 - **Expanded tyre modeling**
   - Stint effectiveness across all races (1950–2025)
-- **Standalone executable**
-  - Run without localhost or manual server startup
+
+- **Season & Driver Views**
+  - Full-season breakdown of:
+    - Car performance trends
+    - Constructor upgrades and performance shifts
+  - Detailed driver profiles:
+    - Teammate comparisons
+    - Strengths and weaknesses derived from data
+  - Constructor dashboards:
+    - Average performance score
+    - Reliability metrics
+  -  Strategy and pit efficiency
 
 ---
 
